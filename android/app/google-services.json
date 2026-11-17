@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "6785943707",
+    "project_id": "fir-signinemail",
+    "storage_bucket": "fir-signinemail.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6785943707:android:ea4e4b47754a026d7f1e3e",
+        "android_client_info": {
+          "package_name": "firebase_GoogleSignEmail.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "6785943707-ablpngrcvluq0rhkdd0dm1q021o9sqkc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "firebase_GoogleSignEmail.com",
+            "certificate_hash": "6acd55781d44b4f6a4ebfb27c6f9bca84fed36fb"
+          }
+        },
+        {
+          "client_id": "6785943707-ngq0vqlr70tm4dnr2nu7re45j5f06re2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3M11lTKuiFROPDOJWqEvSsd5gdD1iknc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6785943707-ngq0vqlr70tm4dnr2nu7re45j5f06re2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

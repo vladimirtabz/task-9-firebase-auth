@@ -1,0 +1,73 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn? _googleSignIn = kIsWeb ? null : GoogleSignIn();
+  static const String allowedGoogleEmail = 'v.tabudlong.529860@umindanao.edu.ph';
+
+  Future<User?> signInWithGoogle() async {
+    User? user;
+    if (kIsWeb) {
+      GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
+      user = userCredential.user;
+    } else {
+      final googleUser = await _googleSignIn!.signIn();
+      if (googleUser == null) return null; 
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      user = (await _auth.signInWithCredential(credential)).user;
+    }
+
+    if (user != null && user.email?.toLowerCase() != allowedGoogleEmail.toLowerCase()) {
+      await signOut();
+      throw FirebaseAuthException(
+        code: 'unauthorized-email',
+        message: 'Only $allowedGoogleEmail is permitted to sign in with Google.',
+      );
+    }
+
+    return user;
+  }
+
+  Future<User?> registerWithEmail(String email, String password) async {
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      return userCredential.user;
+    } catch (e) {
+      print('Failed to register user: $e');
+      return null;
+    }
+  }
+
+  Future<User?> signInWithEmail(String email, String password) async {
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return userCredential.user;
+    } catch (e) {
+      print('Failed to log in user: $e');
+      return null;
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> signOut() async {
+    if (!kIsWeb) {
+      await _googleSignIn?.signOut();
+    }
+
+    await _auth.signOut();
+  }
+
+  Stream<User?> get userStream => _auth.authStateChanges();
+}
