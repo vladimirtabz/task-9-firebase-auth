@@ -19,9 +19,9 @@ class _LoginPageState extends State<LoginPage> {
     final AuthService auth = AuthService();
     final TextEditingController emailCtrl = TextEditingController();
     final TextEditingController passwordCtrl = TextEditingController();
-  
+
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: Text('Login - Tabudlong')),
       body: Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 12,),
+              SizedBox(height: 12),
               TextField(
                 controller: passwordCtrl,
                 decoration: InputDecoration(
@@ -43,12 +43,17 @@ class _LoginPageState extends State<LoginPage> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 12,),
+              SizedBox(height: 12),
               ElevatedButton(
-                child: loading ? CircularProgressIndicator(color: Colors.white,) : Text('Login with email'),
+                child: loading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text('Login with email'),
                 onPressed: () async {
                   setState(() => loading = true);
-                  final user = await auth.signInWithEmail(emailCtrl.text, passwordCtrl.text);
+                  final user = await auth.signInWithEmail(
+                    emailCtrl.text,
+                    passwordCtrl.text,
+                  );
                   if (!mounted) return;
                   setState(() => loading = false);
 
@@ -56,18 +61,20 @@ class _LoginPageState extends State<LoginPage> {
                     if (!user.emailVerified) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Please verify your email before logging in.')
-                        )
+                          content: Text(
+                            'Please verify your email before logging in.',
+                          ),
+                        ),
                       );
                     } else {
                       Navigator.pushReplacement(
-                        context, 
-                        MaterialPageRoute(builder: (_) => HomePage())
+                        context,
+                        MaterialPageRoute(builder: (_) => HomePage()),
                       );
                     }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Invalid email or password'))
+                      SnackBar(content: Text('Invalid email or password')),
                     );
                   }
                 },
@@ -77,7 +84,8 @@ class _LoginPageState extends State<LoginPage> {
                 child: TextButton(
                   child: Text('Forgot your password?'),
                   onPressed: () {
-                    final TextEditingController resetEmailCtrl = TextEditingController(text: emailCtrl.text);
+                    final TextEditingController resetEmailCtrl =
+                        TextEditingController(text: emailCtrl.text);
                     showDialog(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
@@ -100,7 +108,9 @@ class _LoginPageState extends State<LoginPage> {
                               final email = resetEmailCtrl.text.trim();
                               if (email.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Please enter your email')),
+                                  SnackBar(
+                                    content: Text('Please enter your email'),
+                                  ),
                                 );
                                 return;
                               }
@@ -109,11 +119,19 @@ class _LoginPageState extends State<LoginPage> {
                                 if (!mounted) return;
                                 Navigator.pop(dialogContext);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Password reset link sent to $email')),
+                                  SnackBar(
+                                    content: Text(
+                                      'Password reset link sent to $email',
+                                    ),
+                                  ),
                                 );
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Failed to send reset email: $e')),
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to send reset email: $e',
+                                    ),
+                                  ),
                                 );
                               }
                             },
@@ -124,18 +142,18 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
               ),
-              SizedBox(height: 24,),
+              SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(),),
+                  Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text('OR'),
                   ),
-                  Expanded(child: Divider(),),
+                  Expanded(child: Divider()),
                 ],
               ),
-              SizedBox(height: 24,),
+              SizedBox(height: 24),
               ElevatedButton.icon(
                 icon: Icon(Icons.login),
                 label: Text('Sign in with Google'),
@@ -147,29 +165,35 @@ class _LoginPageState extends State<LoginPage> {
                     setState(() => loading = false);
                     if (user != null) {
                       Navigator.pushReplacement(
-                        context, 
-                        MaterialPageRoute(builder: (_) => HomePage())
+                        context,
+                        MaterialPageRoute(builder: (_) => HomePage()),
                       );
                     }
                   } catch (e) {
                     if (!mounted) return;
                     setState(() => loading = false);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(e is FirebaseAuthException && e.message != null ? e.message! : 'Sign-in failed: $e')),
+                      SnackBar(
+                        content: Text(
+                          e is FirebaseAuthException && e.message != null
+                              ? e.message!
+                              : 'Sign-in failed: $e',
+                        ),
+                      ),
                     );
                   }
                 },
               ),
-              SizedBox(height: 12,),
+              SizedBox(height: 12),
               TextButton(
                 child: Text('Dont have an account? Register'),
                 onPressed: () {
                   Navigator.push(
-                    context, 
-                    MaterialPageRoute(builder: (_) => RegisterPage())
+                    context,
+                    MaterialPageRoute(builder: (_) => RegisterPage()),
                   );
                 },
-              )
+              ),
             ],
           ),
         ),

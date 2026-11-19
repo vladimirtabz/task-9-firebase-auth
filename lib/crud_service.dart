@@ -33,21 +33,30 @@ class CrudService {
   }
 
   //Create
-  Future <void> addItem(String name, int quantity) {
+  Future <void> addItem(String name, int quantity, {bool isFavorite = false}) {
     return items.add({
       'name': name,
       'quantity': quantity,
+      'isFavorite': isFavorite,
       'createdAt': Timestamp.now(),  
     });
   }
 
   //Create
-  Future <void> addItemWithImage(String name, int quantity, String? imageUrl) async {
+  Future <void> addItemWithImage(String name, int quantity, String? imageUrl, {bool isFavorite = false}) async {
     await items.add({
       'name': name,
       'quantity': quantity,
       'image_url': imageUrl,
+      'isFavorite': isFavorite,
       'createdAt': Timestamp.now(),  
+    });
+  }
+
+  //Toggle Favorite
+  Future<void> toggleFavorite(String id, bool currentStatus) {
+    return items.doc(id).update({
+      'isFavorite': !currentStatus,
     });
   }
 
@@ -58,11 +67,15 @@ class CrudService {
 
 
   //Update
-  Future <void> updateItem(String id, String name, int quantity) {
-    return items.doc(id).update({
+  Future <void> updateItem(String id, String name, int quantity, {String? imageUrl}) {
+    Map<String, dynamic> data = {
       'name': name,
       'quantity': quantity,
-    });
+    };
+    if (imageUrl != null) {
+      data['image_url'] = imageUrl;
+    }
+    return items.doc(id).update(data);
   }
 
   //Delete

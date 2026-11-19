@@ -62,6 +62,7 @@ class HomePage extends StatelessWidget {
 
               final data = item.data() as Map<String, dynamic>;
               final imageUrl = data['image_url'];
+              final bool isFavorite = data['isFavorite'] ?? false;
               return Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -98,6 +99,15 @@ class HomePage extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: () {
+                          service.toggleFavorite(item.id, isFavorite);
+                        },
+                      ),
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.orange),
                         onPressed: () => openEditDialog(context, item),
@@ -146,6 +156,7 @@ class HomePage extends StatelessWidget {
 
     File? selectedImageFile;
     String? selectedImageUrl;
+    bool isFavorite = false;
 
     showDialog(
       context: context,
@@ -176,6 +187,26 @@ class HomePage extends StatelessWidget {
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 10),
+              Row(
+                children: [
+                  Checkbox(
+                    value: isFavorite,
+                    activeColor: Colors.red,
+                    onChanged: (val) {
+                      setState(() {
+                        isFavorite = val ?? false;
+                      });
+                    },
+                  ),
+                  const Text('Mark as favorite'),
+                  const SizedBox(width: 4),
+                  Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
+                    size: 20,
+                  ),
+                ],
+              ),
               if (selectedImageFile != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -221,6 +252,7 @@ class HomePage extends StatelessWidget {
                     nameCtrl.text,
                     int.parse(qtyCtrl.text),
                     selectedImageUrl,
+                    isFavorite: isFavorite,
                   );
                   Navigator.pop(context);
                 }
@@ -236,61 +268,130 @@ class HomePage extends StatelessWidget {
     nameCtrl.text = item['name'];
     qtyCtrl.text = item['quantity'].toString();
 
+    final itemData = item.data() as Map<String, dynamic>;
+    String? currentImageUrl = itemData['image_url'];
+    File? newSelectedImageFile;
+    String? newSelectedImageUrl;
+    bool isUploading = false;
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Edit item'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Edit item'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: qtyCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Quantity',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                if (newSelectedImageFile != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      newSelectedImageFile!,
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else if (currentImageUrl != null && currentImageUrl.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      currentImageUrl,
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  icon: isUploading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.upload_file),
+                  label: Text(
+                    isUploading
+                        ? 'Uploading...'
+                        : (currentImageUrl != null || newSelectedImageFile != null
+                            ? 'Change image'
+                            : 'Upload image'),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: isUploading
+                      ? null
+                      : () async {
+                          setState(() => isUploading = true);
+                          final pickedFile = await service.pickImageForAddItem();
+                          if (pickedFile != null) {
+                            setState(() {
+                              newSelectedImageFile = pickedFile.file;
+                              newSelectedImageUrl = pickedFile.url;
+                              isUploading = false;
+                            });
+                          } else {
+                            setState(() => isUploading = false);
+                          }
+                        },
+                ),
+              ],
             ),
-
-            const SizedBox(height: 10),
-
-            TextField(
-              controller: qtyCtrl,
-              decoration: InputDecoration(
-                labelText: 'Quantity',
-                border: OutlineInputBorder(
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              child: const Text('Update'),
+              onPressed: isUploading
+                  ? null
+                  : () {
+                      if (nameCtrl.text.isNotEmpty && qtyCtrl.text.isNotEmpty) {
+                        service.updateItem(
+                          item.id,
+                          nameCtrl.text,
+                          int.parse(qtyCtrl.text),
+                          imageUrl: newSelectedImageUrl,
+                        );
+                        Navigator.pop(context);
+                      }
+                    },
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Update'),
-            onPressed: () {
-              if (nameCtrl.text.isNotEmpty && qtyCtrl.text.isNotEmpty) {
-                service.updateItem(
-                  item.id,
-                  nameCtrl.text,
-                  int.parse(qtyCtrl.text),
-                );
-                Navigator.pop(context);
-              }
-            },
-          ),
-        ],
       ),
     );
   }
