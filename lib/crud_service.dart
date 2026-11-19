@@ -13,7 +13,7 @@ class PickedImage {
 class CrudService {
   final CollectionReference items = FirebaseFirestore.instance.collection('items');
 
-  final CloudinaryPublic _cloudinary = CloudinaryPublic('jk6vbund', 'cce106', cache: false);
+  final CloudinaryPublic _cloudinary = CloudinaryPublic('zt7vufad', 'cce106', cache: false);
 
   final ImagePicker _picker = ImagePicker();
 
